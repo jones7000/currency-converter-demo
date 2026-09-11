@@ -1,0 +1,37 @@
+# Packages the backend, Envoy proxy, and frontend as three containers. This
+# is the primary way to run/demo the finished system -- `docker compose up
+# --build` and open http://localhost:4200 -- requiring nothing on the host
+# beyond Docker itself. Nix (flake.nix) stays the tool for day-to-day
+# development instead.
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "9090:9090" # optional, for grpcurl debugging -- envoy is the only required caller
+    volumes:
+      - ./backend/config/server.default.json:/app/config/server.default.json:ro
+      - ./logs/backend:/var/log/currency-server # log file shared with the host
+
+  envoy:
+    image: envoyproxy/envoy:v1.31-latest
+    depends_on:
+      - backend
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    depends_on:
+      - envoy
+    environment:
+      # The browser calls Envoy's host-mapped port directly; this is only
+      # known at `up` time, not at image-build time.
+      - BACKEND_URL=http://localhost:8080
+    ports:
+      - "4200:80"

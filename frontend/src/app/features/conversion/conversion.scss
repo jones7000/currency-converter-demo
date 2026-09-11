@@ -1,0 +1,46 @@
+.state-row {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+.error-text {
+  color: var(--mat-sys-error);
+}
+
+.conversion-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  mat-form-field {
+    flex: 1 1 220px;
+  }
+}
+
+.hint-text {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.85rem;
+  margin: 0 0 8px;
+}
+
+.result {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.result-line {
+  font-size: 1.1rem;
+}
+
+.rate-date {
+  color: var(--mat-sys-on-surface-variant);
+  margin-top: -8px;
+}

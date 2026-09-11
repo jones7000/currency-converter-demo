@@ -1,0 +1,119 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Convert &amp; Historical Trend</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    @if (loadingLookups()) {
+      <div class="state-row">
+        <mat-spinner diameter="32" />
+      </div>
+    } @else if (lookupError()) {
+      <p class="error-text">{{ lookupError() }}</p>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" class="conversion-form">
+        <div class="row">
+          <mat-form-field appearance="outline">
+            <mat-label>Source currency</mat-label>
+            <mat-select formControlName="sourceCurrency">
+              @for (currency of currencies(); track currency.code) {
+                <mat-option [value]="currency.code">{{ currency.code }} — {{ currency.fullName }}</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.sourceCurrency.invalid && form.controls.sourceCurrency.touched) {
+              <mat-error>Required</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Target currency</mat-label>
+            <mat-select formControlName="targetCurrency">
+              @for (currency of currencies(); track currency.code) {
+                <mat-option [value]="currency.code">{{ currency.code }} — {{ currency.fullName }}</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.targetCurrency.invalid && form.controls.targetCurrency.touched) {
+              <mat-error>Required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="row">
+          <mat-form-field appearance="outline">
+            <mat-label>Amount</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="amount"
+              [attr.min]="constraints()?.minAmount"
+              [attr.max]="constraints()?.maxAmount"
+            />
+            @if (constraints(); as c) {
+              <mat-hint>Between {{ c.minAmount }} and {{ c.maxAmount }}</mat-hint>
+            }
+            @if (form.controls.amount.invalid && form.controls.amount.touched) {
+              <mat-error>Out of the allowed range</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="row">
+          <mat-form-field appearance="outline">
+            <mat-label>Start date</mat-label>
+            <input
+              matInput
+              [matDatepicker]="startPicker"
+              formControlName="startDate"
+              [min]="minDate"
+              [max]="maxDate"
+            />
+            <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
+            <mat-datepicker #startPicker />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>End date</mat-label>
+            <input
+              matInput
+              [matDatepicker]="endPicker"
+              formControlName="endDate"
+              [min]="minDate"
+              [max]="maxDate"
+            />
+            <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
+            <mat-datepicker #endPicker />
+          </mat-form-field>
+        </div>
+
+        @if (constraints(); as c) {
+          <p class="hint-text">Selectable date range: {{ c.minDate }} to {{ c.maxDate }}</p>
+        }
+
+        <button mat-flat-button color="primary" type="submit" [disabled]="submitting()">
+          @if (submitting()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            Convert
+          }
+        </button>
+      </form>
+
+      @if (result(); as r) {
+        <div class="result">
+          <p class="result-line">
+            <strong>{{ r.sourceAmount }} {{ form.value.sourceCurrency }}</strong>
+            =
+            <strong>{{ r.convertedAmount | number: '1.2-4' }} {{ form.value.targetCurrency }}</strong>
+          </p>
+          <p class="rate-date">Rate {{ r.exchangeRate }} as of {{ r.rateDate }}</p>
+        </div>
+
+        <app-history-chart
+          [points]="historyPoints()"
+          [sourceCurrency]="form.value.sourceCurrency ?? ''"
+          [targetCurrency]="form.value.targetCurrency ?? ''"
+        />
+      }
+    }
+  </mat-card-content>
+</mat-card>

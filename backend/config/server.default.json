@@ -1,0 +1,23 @@
+{
+  "server": {
+    "grpc_port": 9090
+  },
+  "external_api": {
+    "base_url": "https://api.frankfurter.dev",
+    "timeout_ms": 5000
+  },
+  "cache": {
+    "history": {
+      "max_age_minutes": 1440,
+      "max_elements": 5000
+    },
+    "latest_rate": {
+      "max_age_minutes": 15,
+      "max_elements": 500
+    }
+  },
+  "logging": {
+    "level": "information",
+    "file": "/var/log/currency-server/backend.log"
+  }
+}

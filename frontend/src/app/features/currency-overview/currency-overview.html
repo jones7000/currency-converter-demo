@@ -1,0 +1,68 @@
+<mat-card>
+  <div class="header-row">
+    <mat-card-header>
+      <mat-card-title>Currency Overview</mat-card-title>
+      <mat-card-subtitle>All currencies supported by the backend</mat-card-subtitle>
+    </mat-card-header>
+
+    <button
+      mat-icon-button
+      type="button"
+      class="toggle-button"
+      [attr.aria-label]="expanded() ? 'Collapse currency overview' : 'Expand currency overview'"
+      [attr.aria-expanded]="expanded()"
+      (click)="toggleExpanded()"
+    >
+      <mat-icon>{{ expanded() ? 'remove' : 'add' }}</mat-icon>
+    </button>
+  </div>
+
+  @if (expanded()) {
+    <mat-card-content>
+      @if (loading()) {
+        <div class="state-row">
+          <mat-spinner diameter="32" />
+        </div>
+      } @else if (error()) {
+        <p class="error-text">{{ error() }}</p>
+      } @else {
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search currencies</mat-label>
+          <input matInput type="text" [value]="searchTerm()" (input)="onSearchInput($event)" placeholder="Code or name" />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <!--
+          Fixed height regardless of row count (even a single match, or
+          zero) so the page doesn't reflow as the user types into the
+          search field -- the table area itself scrolls internally instead.
+        -->
+        <div class="results-box">
+          @if (filteredCurrencies().length > 0) {
+            <div class="table-scroll">
+              <table mat-table [dataSource]="filteredCurrencies()" class="currency-table">
+                <ng-container matColumnDef="code">
+                  <th mat-header-cell *matHeaderCellDef>Code</th>
+                  <td mat-cell *matCellDef="let currency">{{ currency.code }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="fullName">
+                  <th mat-header-cell *matHeaderCellDef>Name</th>
+                  <td mat-cell *matCellDef="let currency">{{ currency.fullName }}</td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+              </table>
+            </div>
+          } @else {
+            <div class="empty-state">
+              <p class="empty-text">No currencies match "{{ searchTerm() }}".</p>
+            </div>
+          }
+        </div>
+        <p class="result-count">{{ filteredCurrencies().length }} of {{ currencies().length }} currencies</p>
+      }
+    </mat-card-content>
+  }
+</mat-card>

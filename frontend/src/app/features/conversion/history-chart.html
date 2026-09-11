@@ -1,0 +1,7 @@
+@if (points().length > 0) {
+  <div class="chart-container">
+    <canvas baseChart type="line" [data]="chartData()" [options]="chartOptions"></canvas>
+  </div>
+} @else {
+  <p class="empty-text">No historical data for this selection.</p>
+}

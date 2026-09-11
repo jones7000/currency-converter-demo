@@ -1,0 +1,88 @@
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  mat-card-header {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.toggle-button {
+  flex: 0 0 auto;
+  margin-right: 8px;
+}
+
+.state-row {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+
+.error-text {
+  color: var(--mat-sys-error);
+}
+
+.empty-text {
+  color: var(--mat-sys-on-surface-variant);
+  font-style: italic;
+}
+
+.search-field {
+  width: 100%;
+}
+
+// Fixed height (not max-height) so the section takes up the same space
+// whether it holds one row or fifty -- content scrolls internally instead
+// of the panel growing/shrinking as the search filter narrows the list.
+$results-height: 360px;
+
+.results-box {
+  height: $results-height;
+}
+
+// mat-table renders as a native <table>; the scrollable/sticky-header
+// behavior belongs on this wrapper, not on the table itself, so the table
+// keeps normal table layout and genuinely fills the card's width.
+.table-scroll {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 4px;
+}
+
+.empty-state {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 4px;
+}
+
+.currency-table {
+  width: 100%;
+  table-layout: fixed;
+
+  .mat-column-code {
+    width: 120px;
+    font-weight: 500;
+  }
+
+  .mat-column-fullName {
+    width: auto;
+  }
+
+  th.mat-mdc-header-cell,
+  td.mat-mdc-cell {
+    padding: 8px 16px;
+  }
+}
+
+.result-count {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.85rem;
+  margin: 8px 0 0;
+}

@@ -1,0 +1,11 @@
+.chart-container {
+  position: relative;
+  height: 320px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.empty-text {
+  color: var(--mat-sys-on-surface-variant);
+  font-style: italic;
+}

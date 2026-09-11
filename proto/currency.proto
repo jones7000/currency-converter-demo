@@ -1,0 +1,78 @@
+syntax = "proto3";
+package currency;
+
+// ── Service ────────────────────────────────────────────────────────────────
+
+service CurrencyService {
+  // Currency overview — full list of supported currencies.
+  rpc ListCurrencies(ListCurrenciesRequest) returns (CurrencyListResponse);
+
+  // Convert a fixed amount at the latest available rate.
+  rpc Convert(ConvertRequest) returns (ConvertResponse);
+
+  // Historical rate series between two currencies over a date range.
+  rpc GetHistory(HistoryRequest) returns (HistoryResponse);
+
+  // UI bounds (min/max amount, min/max selectable date) — server-declared,
+  // so the client never hardcodes business rules.
+  rpc GetConstraints(ConstraintsRequest) returns (ConstraintsResponse);
+}
+
+// ── Currency Overview ─────────────────────────────────────────────────────
+
+message ListCurrenciesRequest {}
+
+message CurrencyInfo {
+  string code = 1;       // ISO 4217, e.g. "USD"
+  string full_name = 2;  // e.g. "United States Dollar"
+}
+
+message CurrencyListResponse {
+  repeated CurrencyInfo currencies = 1;
+}
+
+// ── Conversion ────────────────────────────────────────────────────────────
+
+message ConvertRequest {
+  string source_currency = 1;  // ISO 4217 code
+  string target_currency = 2;  // ISO 4217 code
+  double amount = 3;           // must satisfy [min_amount, max_amount] from ConstraintsResponse
+}
+
+message ConvertResponse {
+  double source_amount = 1;
+  double converted_amount = 2;
+  double exchange_rate = 3;
+  string rate_date = 4;  // ISO 8601 date (YYYY-MM-DD) of the latest rate used
+}
+
+// ── Historical Trend ──────────────────────────────────────────────────────
+
+message HistoryRequest {
+  string source_currency = 1;
+  string target_currency = 2;
+  string start_date = 3;  // ISO 8601 date, inclusive
+  string end_date = 4;    // ISO 8601 date, inclusive
+}
+
+message HistoryPoint {
+  string date = 1;
+  double rate = 2;
+}
+
+message HistoryResponse {
+  string source_currency = 1;
+  string target_currency = 2;
+  repeated HistoryPoint points = 3;
+}
+
+// ── UI Bounds ────────────────────────────────────────────────────────────
+
+message ConstraintsRequest {}
+
+message ConstraintsResponse {
+  double min_amount = 1;
+  double max_amount = 2;
+  string min_date = 3;  // earliest date frankfurter.dev has data for
+  string max_date = 4;  // latest date with published rates (today or last business day)
+}

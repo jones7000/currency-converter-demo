@@ -1,0 +1,85 @@
+# Translates gRPC-Web (from the Angular client) to native gRPC (to the C++
+# backend) and handles browser CORS -- the one piece of infrastructure that
+# exists purely because browsers can't speak native gRPC themselves.
+#
+# The upstream hostname "backend" resolves via Docker Compose's built-in DNS
+# and, for a local-dev standalone run, via
+# `--add-host=backend:host-gateway` pointing back at the host machine --
+# one config file serves both run modes.
+static_resources:
+  listeners:
+    - name: listener_grpc_web
+      address:
+        socket_address: { address: 0.0.0.0, port_value: 8080 }
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: ingress_http
+                codec_type: AUTO
+                access_log:
+                  - name: envoy.access_loggers.stdout
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: currency_service
+                      domains: ["*"]
+                      # Local-dev-permissive CORS: any origin may call this
+                      # proxy. Fine for a portfolio/demo deployment behind
+                      # docker-compose; a real deployment would restrict
+                      # allow_origin_string_match to the actual frontend
+                      # origin(s) -- called out explicitly rather than left
+                      # as a silent gap.
+                      cors:
+                        allow_origin_string_match:
+                          - safe_regex:
+                              regex: ".*"
+                        allow_methods: "GET, PUT, DELETE, POST, OPTIONS"
+                        allow_headers: "keep-alive,user-agent,cache-control,content-type,x-grpc-web,grpc-timeout,x-user-agent,x-accept-content-transfer-encoding,x-accept-response-streaming"
+                        expose_headers: "grpc-status,grpc-message"
+                        max_age: "1728000"
+                      routes:
+                        - match: { prefix: "/" }
+                          route:
+                            cluster: backend
+                            timeout: 60s
+                http_filters:
+                  - name: envoy.filters.http.grpc_web
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
+                  - name: envoy.filters.http.cors
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  clusters:
+    - name: backend
+      connect_timeout: 5s
+      type: LOGICAL_DNS
+      dns_lookup_family: V4_ONLY
+      lb_policy: ROUND_ROBIN
+      # The backend speaks plain-text HTTP/2 (no TLS between proxy and
+      # backend inside the docker-compose network); this option is what
+      # makes Envoy talk h2c instead of assuming HTTP/1.1 for the upstream.
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options: {}
+      load_assignment:
+        cluster_name: backend
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: backend
+                      port_value: 9090
+
+admin:
+  address:
+    socket_address: { address: 0.0.0.0, port_value: 9901 }

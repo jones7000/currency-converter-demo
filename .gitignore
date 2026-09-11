@@ -1,0 +1,21 @@
+# Backend
+backend/build/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/src/app/generated/
+
+# Local logs bind-mount target (docs/architecture.md §9.3) -- keep the
+# directory itself (via logs/backend/.gitkeep) so `docker compose up` has
+# somewhere to mount into on a fresh checkout, but not its contents.
+logs/*
+!logs/backend/
+logs/backend/*
+!logs/backend/.gitkeep
+
+# Editor
+.vscode/
+
+# Nix
+.direnv/
